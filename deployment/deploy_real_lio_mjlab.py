@@ -44,6 +44,8 @@ def main():
         parser.error("--seconds must be positive")
     policy = load_policy(args.checkpoint or checkpoint_path(args.policy))
     cfg = policy.cfg
+    if cfg.robot != "g1":
+        parser.error("This entry point supports Unitree G1 only; OLI SDK control is not implemented")
     model = mujoco.MjModel.from_xml_path(str(ASSET_DIR / "g1_29dof.xml"))
     observer = policy.attach_observer(model)
     robot = G1(cfg, model, args.net, args.lidar_frame, args.lio_topic)

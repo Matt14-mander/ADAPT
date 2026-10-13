@@ -1,6 +1,6 @@
 """Portable deployment settings. Loading these does not import the training stack."""
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 import hashlib
 import json
 from pathlib import Path
@@ -8,6 +8,8 @@ import re
 
 import mujoco
 import numpy as np
+
+from common.paths import robot_asset_dir, task_robot
 
 
 @dataclass
@@ -29,6 +31,22 @@ class DeploymentConfig:
     filter_order: int = 2
     cutoff_hz: float = 1.0
     model_sha256: str = ""
+    robot: str = "g1"
+    variant: str = "gripper"
+    base_body: str = "pelvis"
+    default_base_position: list[float] = field(default_factory=lambda: [0, 0, 0.76])
+    leg_joint_names: list[list[str]] = field(default_factory=list)
+
+    @property
+    def scene_path(self):
+        return robot_asset_dir(self.robot, self.variant) / "scene.xml"
+
+    @property
+    def leg_residual_indices(self):
+        if self.leg_joint_names:
+            return [[6 + self.joint_names.index(name) for name in side] for side in self.leg_joint_names]
+        # Compatibility with the original G1 exports.
+        return [list(range(6, 12)), list(range(12, 18))]
 
     @property
     def control_dt(self):
@@ -48,7 +66,7 @@ class DeploymentConfig:
 
     @classmethod
     def from_env(cls, task, env, model):
-        """Extract only the five released tasks' deployment contract."""
+        """Extract the single-free-base, one-actuator-per-joint deployment contract."""
         names = [
             model.joint(i).name
             for i in range(model.njnt)
@@ -116,7 +134,7 @@ class DeploymentConfig:
             )
             for name, term in terms.items()
         ]
-        return cls(
+        cfg = cls(
             task,
             names,
             env.sim.mujoco.timestep,
@@ -131,6 +149,15 @@ class DeploymentConfig:
             mode,
             scales,
         )
+        cfg.robot = task_robot(task)
+        cfg.base_body = "base_link" if cfg.robot == "oli" else "pelvis"
+        cfg.default_base_position = list(robot.init_state.pos)
+        cfg.leg_joint_names = [
+            [name for name in names if name.startswith(side + "_") and any(
+                part in name for part in ("hip_", "knee", "ankle_"))]
+            for side in ("left", "right")
+        ]
+        return cfg
 
 
 def configure_model(model, cfg):
@@ -140,8 +167,16 @@ def configure_model(model, cfg):
         for i in range(model.njnt)
         if model.jnt_type[i] != mujoco.mjtJoint.mjJNT_FREE
     ]
-    if names != cfg.joint_names or (model.nq, model.nv, model.nu) != (36, 35, 29):
-        raise ValueError("The released policies require the supplied 29-DoF G1 joint order")
+    n = len(cfg.joint_names)
+    free = np.flatnonzero(model.jnt_type == mujoco.mjtJoint.mjJNT_FREE)
+    if (names != cfg.joint_names or (model.nq, model.nv, model.nu) != (n + 7, n + 6, n)
+            or len(free) != 1 or free[0] != 0
+            or np.any(~np.isin(model.jnt_type[1:], [mujoco.mjtJoint.mjJNT_HINGE, mujoco.mjtJoint.mjJNT_SLIDE]))):
+        raise ValueError("Expected one free base followed by scalar joints, each with one actuator, in exported order")
+    for field_name in ("stiffness", "damping", "armature", "effort_limits", "default_position", "action_scale"):
+        values = np.asarray(getattr(cfg, field_name))
+        if values.shape != (n,) or not np.isfinite(values).all():
+            raise ValueError(f"Invalid {field_name}: expected {n} finite values")
     actuators = []
     for i, name in enumerate(names):
         joint = model.joint(name)
@@ -152,6 +187,9 @@ def configure_model(model, cfg):
         actuators.append(act)
         model.actuator_gainprm[act, 0] = cfg.stiffness[i]
         model.actuator_biasprm[act, 1:3] = [-cfg.stiffness[i], -cfg.damping[i]]
+        model.actuator_biastype[act] = mujoco.mjtBias.mjBIAS_AFFINE
+        model.actuator_forcelimited[act] = True
+        model.actuator_forcerange[act] = [-cfg.effort_limits[i], cfg.effort_limits[i]]
         model.dof_armature[joint.dofadr[0]] = cfg.armature[i]
     model.opt.timestep = cfg.timestep
     return np.asarray(actuators)

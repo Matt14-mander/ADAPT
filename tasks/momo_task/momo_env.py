@@ -74,6 +74,8 @@ class MoMoEnv(ManagerBasedRlEnv):
     _qpos_noise_range: float = 0.01
     _qvel_noise_range: float = 0.5
     _encoder_bias_range: float = 0.015
+    _torso_body_name: str = "torso_link"
+    _hand_body_names: tuple[str, str] = ("left_wrist_yaw_link", "right_wrist_yaw_link")
 
     def __init__(
         self,
@@ -146,6 +148,8 @@ class MoMoEnv(ManagerBasedRlEnv):
 
         nv = self.sim.mj_model.nv
         nu = self.sim.mj_model.nu
+        if (self.sim.mj_model.nq, nv) != (nu + 7, nu + 6):
+            raise ValueError("MoMoEnv requires a free base and one actuator per scalar joint; use the OLI serial model")
         default_body_mass = self.sim.get_default_field("body_mass")
         gravity_z = self.sim.mj_model.opt.gravity[2]
         self.nominal_mg = float(default_body_mass.sum() * abs(gravity_z))
@@ -189,7 +193,7 @@ class MoMoEnv(ManagerBasedRlEnv):
                 self,
                 _WRENCH_STATE_ATTRS,
                 "robot",
-                ("torso_link",),
+                (self._torso_body_name,),
                 clean_flag_attr="wrench_clean_env_flag",
                 category_attr="wrench_category",
                 enable_categories=(1, 4),
@@ -198,14 +202,14 @@ class MoMoEnv(ManagerBasedRlEnv):
                 self,
                 _HAND_WRENCH_STATE_ATTRS,
                 "robot",
-                ("left_wrist_yaw_link", "right_wrist_yaw_link"),
+                self._hand_body_names,
                 clean_flag_attr="wrench_clean_env_flag",
             )
             step_continuous_wrenches(
                 self,
                 ["wrench_state_hand_load_left"],
                 "robot",
-                ("left_wrist_yaw_link",),
+                (self._hand_body_names[0],),
                 clean_flag_attr="wrench_clean_env_flag",
                 category_attr="wrench_category",
                 enable_categories=(2, 4),
@@ -214,7 +218,7 @@ class MoMoEnv(ManagerBasedRlEnv):
                 self,
                 ["wrench_state_hand_load_right"],
                 "robot",
-                ("right_wrist_yaw_link",),
+                (self._hand_body_names[1],),
                 clean_flag_attr="wrench_clean_env_flag",
                 category_attr="wrench_category",
                 enable_categories=(3, 4),

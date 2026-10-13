@@ -9,7 +9,7 @@ import mujoco
 import numpy as np
 
 from common.telemetry import Telemetry, observer_record
-from common.paths import ASSET_DIR, checkpoint_path
+from common.paths import checkpoint_path, mujoco_path
 from deployment.mujoco_robot import MujocoRobot
 from deployment.policy_manager import PolicyManager, load_policy
 
@@ -45,7 +45,7 @@ class Simulation:
 
     def register_policy(self, name, checkpoint, *, set_active=False):
         policy = load_policy(checkpoint, name=name)
-        nominal = mujoco.MjModel.from_xml_path(str(ASSET_DIR / "scene.xml"))
+        nominal = mujoco.MjModel.from_xml_path(mujoco_path(policy.cfg.scene_path))
         policy.attach_observer(nominal)
         self.policy_manager.register(policy, set_active=set_active and not hasattr(self, "robot"))
         if set_active and hasattr(self, "robot"):

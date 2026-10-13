@@ -39,14 +39,15 @@ class Telemetry:
 
 def observer_record(observer, policy, state, command, local, **extra):
     scaled = local / np.asarray(policy.cfg.residual_scale, np.float32)
-    leg = scaled[6:18].reshape(2, 6)
+    legs = [scaled[indices] for indices in policy.cfg.leg_residual_indices]
     return dict(
         task=policy.cfg.task,
         raw_generalized=observer.raw.tolist(),
         filtered_generalized=observer.filtered.tolist(),
         local_residual=local.tolist(),
         scaled_residual=scaled.tolist(),
-        leg_envelope=np.sqrt(np.mean(leg**2, axis=1)).tolist(),
+        leg_envelope=[float(np.sqrt(np.mean(leg**2))) for leg in legs],
+        robot=policy.cfg.robot,
         actor_residual=policy.history.residual_term(local).tolist(),
         linear_velocity=state.linear_velocity.tolist(),
         angular_velocity=state.angular_velocity.tolist(),

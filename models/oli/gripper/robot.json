@@ -1,0 +1,310 @@
+{
+  "robot": "oli",
+  "variant": "gripper",
+  "base_body": "base_link",
+  "torso_body": "waist_pitch_link",
+  "hand_bodies": [
+    "left_wrist_roll_link",
+    "right_wrist_roll_link"
+  ],
+  "default_base_position": [
+    0,
+    0,
+    0.9003035916403332
+  ],
+  "joints": {
+    "left_hip_pitch_joint": {
+      "stiffness": 139.41,
+      "damping": 17.75,
+      "effort_limit": 140.0,
+      "armature": 0.15937500000000002,
+      "velocity_limit": 5.0,
+      "default_position": -0.15,
+      "action_scale": 0.2510580302704254
+    },
+    "left_hip_roll_joint": {
+      "stiffness": 139.41,
+      "damping": 17.75,
+      "effort_limit": 140.0,
+      "armature": 0.15937500000000002,
+      "velocity_limit": 5.0,
+      "default_position": 0.0,
+      "action_scale": 0.2510580302704254
+    },
+    "left_hip_yaw_joint": {
+      "stiffness": 139.41,
+      "damping": 17.75,
+      "effort_limit": 140.0,
+      "armature": 0.15937500000000002,
+      "velocity_limit": 5.0,
+      "default_position": -0.05,
+      "action_scale": 0.2510580302704254
+    },
+    "left_knee_joint": {
+      "stiffness": 139.41,
+      "damping": 17.75,
+      "effort_limit": 140.0,
+      "armature": 0.15937500000000002,
+      "velocity_limit": 5.0,
+      "default_position": 0.3,
+      "action_scale": 0.2510580302704254
+    },
+    "left_ankle_pitch_joint": {
+      "stiffness": 93.65,
+      "damping": 11.92,
+      "effort_limit": 42.0,
+      "armature": 0.08346239999999999,
+      "velocity_limit": 13.6,
+      "default_position": -0.16,
+      "action_scale": 0.11211959423384943
+    },
+    "left_ankle_roll_joint": {
+      "stiffness": 93.65,
+      "damping": 11.92,
+      "effort_limit": 42.0,
+      "armature": 0.08346239999999999,
+      "velocity_limit": 13.6,
+      "default_position": 0.0,
+      "action_scale": 0.11211959423384943
+    },
+    "right_hip_pitch_joint": {
+      "stiffness": 139.41,
+      "damping": 17.75,
+      "effort_limit": 140.0,
+      "armature": 0.15937500000000002,
+      "velocity_limit": 5.0,
+      "default_position": -0.15,
+      "action_scale": 0.2510580302704254
+    },
+    "right_hip_roll_joint": {
+      "stiffness": 139.41,
+      "damping": 17.75,
+      "effort_limit": 140.0,
+      "armature": 0.15937500000000002,
+      "velocity_limit": 5.0,
+      "default_position": 0.0,
+      "action_scale": 0.2510580302704254
+    },
+    "right_hip_yaw_joint": {
+      "stiffness": 139.41,
+      "damping": 17.75,
+      "effort_limit": 140.0,
+      "armature": 0.15937500000000002,
+      "velocity_limit": 5.0,
+      "default_position": 0.05,
+      "action_scale": 0.2510580302704254
+    },
+    "right_knee_joint": {
+      "stiffness": 139.41,
+      "damping": 17.75,
+      "effort_limit": 140.0,
+      "armature": 0.15937500000000002,
+      "velocity_limit": 5.0,
+      "default_position": 0.3,
+      "action_scale": 0.2510580302704254
+    },
+    "right_ankle_pitch_joint": {
+      "stiffness": 93.65,
+      "damping": 11.92,
+      "effort_limit": 42.0,
+      "armature": 0.08346239999999999,
+      "velocity_limit": 13.6,
+      "default_position": -0.16,
+      "action_scale": 0.11211959423384943
+    },
+    "right_ankle_roll_joint": {
+      "stiffness": 93.65,
+      "damping": 11.92,
+      "effort_limit": 42.0,
+      "armature": 0.08346239999999999,
+      "velocity_limit": 13.6,
+      "default_position": 0.0,
+      "action_scale": 0.11211959423384943
+    },
+    "waist_yaw_joint": {
+      "stiffness": 93.65,
+      "damping": 11.92,
+      "effort_limit": 42.0,
+      "armature": 0.08346239999999999,
+      "velocity_limit": 13.6,
+      "default_position": 0.0,
+      "action_scale": 0.11211959423384943
+    },
+    "waist_roll_joint": {
+      "stiffness": 93.65,
+      "damping": 11.92,
+      "effort_limit": 42.0,
+      "armature": 0.08346239999999999,
+      "velocity_limit": 13.6,
+      "default_position": 0.0,
+      "action_scale": 0.11211959423384943
+    },
+    "waist_pitch_joint": {
+      "stiffness": 93.65,
+      "damping": 11.92,
+      "effort_limit": 42.0,
+      "armature": 0.08346239999999999,
+      "velocity_limit": 13.6,
+      "default_position": 0.0,
+      "action_scale": 0.11211959423384943
+    },
+    "left_shoulder_pitch_joint": {
+      "stiffness": 87.51,
+      "damping": 11.14,
+      "effort_limit": 42.0,
+      "armature": 0.04076375,
+      "velocity_limit": 19.6,
+      "default_position": 0.1,
+      "action_scale": 0.11998628728145354
+    },
+    "left_shoulder_roll_joint": {
+      "stiffness": 87.51,
+      "damping": 11.14,
+      "effort_limit": 42.0,
+      "armature": 0.04076375,
+      "velocity_limit": 19.6,
+      "default_position": 0.1,
+      "action_scale": 0.11998628728145354
+    },
+    "left_shoulder_yaw_joint": {
+      "stiffness": 87.51,
+      "damping": 11.14,
+      "effort_limit": 42.0,
+      "armature": 0.04076375,
+      "velocity_limit": 19.6,
+      "default_position": -0.2,
+      "action_scale": 0.11998628728145354
+    },
+    "left_elbow_joint": {
+      "stiffness": 87.51,
+      "damping": 11.14,
+      "effort_limit": 42.0,
+      "armature": 0.04076375,
+      "velocity_limit": 19.6,
+      "default_position": -0.2,
+      "action_scale": 0.11998628728145354
+    },
+    "left_wrist_yaw_joint": {
+      "stiffness": 15.12,
+      "damping": 1.93,
+      "effort_limit": 19.0,
+      "armature": 0.016585172010000003,
+      "velocity_limit": 13.0,
+      "default_position": 0.0,
+      "action_scale": 0.3141534391534392
+    },
+    "left_wrist_pitch_joint": {
+      "stiffness": 15.12,
+      "damping": 1.93,
+      "effort_limit": 19.0,
+      "armature": 0.016585172010000003,
+      "velocity_limit": 13.0,
+      "default_position": 0.0,
+      "action_scale": 0.3141534391534392
+    },
+    "left_wrist_roll_joint": {
+      "stiffness": 15.12,
+      "damping": 1.93,
+      "effort_limit": 19.0,
+      "armature": 0.016585172010000003,
+      "velocity_limit": 13.0,
+      "default_position": 0.0,
+      "action_scale": 0.3141534391534392
+    },
+    "right_shoulder_pitch_joint": {
+      "stiffness": 87.51,
+      "damping": 11.14,
+      "effort_limit": 42.0,
+      "armature": 0.04076375,
+      "velocity_limit": 19.6,
+      "default_position": 0.1,
+      "action_scale": 0.11998628728145354
+    },
+    "right_shoulder_roll_joint": {
+      "stiffness": 87.51,
+      "damping": 11.14,
+      "effort_limit": 42.0,
+      "armature": 0.04076375,
+      "velocity_limit": 19.6,
+      "default_position": -0.1,
+      "action_scale": 0.11998628728145354
+    },
+    "right_shoulder_yaw_joint": {
+      "stiffness": 87.51,
+      "damping": 11.14,
+      "effort_limit": 42.0,
+      "armature": 0.04076375,
+      "velocity_limit": 19.6,
+      "default_position": 0.2,
+      "action_scale": 0.11998628728145354
+    },
+    "right_elbow_joint": {
+      "stiffness": 87.51,
+      "damping": 11.14,
+      "effort_limit": 42.0,
+      "armature": 0.04076375,
+      "velocity_limit": 19.6,
+      "default_position": -0.2,
+      "action_scale": 0.11998628728145354
+    },
+    "right_wrist_yaw_joint": {
+      "stiffness": 15.12,
+      "damping": 1.93,
+      "effort_limit": 19.0,
+      "armature": 0.016585172010000003,
+      "velocity_limit": 13.0,
+      "default_position": 0.0,
+      "action_scale": 0.3141534391534392
+    },
+    "right_wrist_pitch_joint": {
+      "stiffness": 15.12,
+      "damping": 1.93,
+      "effort_limit": 19.0,
+      "armature": 0.016585172010000003,
+      "velocity_limit": 13.0,
+      "default_position": 0.0,
+      "action_scale": 0.3141534391534392
+    },
+    "right_wrist_roll_joint": {
+      "stiffness": 15.12,
+      "damping": 1.93,
+      "effort_limit": 19.0,
+      "armature": 0.016585172010000003,
+      "velocity_limit": 13.0,
+      "default_position": 0.0,
+      "action_scale": 0.3141534391534392
+    },
+    "head_yaw_joint": {
+      "stiffness": 15.12,
+      "damping": 1.93,
+      "effort_limit": 19.0,
+      "armature": 0.016585172010000003,
+      "velocity_limit": 13.0,
+      "default_position": 0.0,
+      "action_scale": 0.3141534391534392
+    },
+    "head_pitch_joint": {
+      "stiffness": 15.12,
+      "damping": 1.93,
+      "effort_limit": 19.0,
+      "armature": 0.016585172010000003,
+      "velocity_limit": 13.0,
+      "default_position": 0.0,
+      "action_scale": 0.3141534391534392
+    }
+  },
+  "frozen_joints": [
+    "left_gripper_joint_1",
+    "left_gripper_joint_2",
+    "left_gripper_joint_3",
+    "left_gripper_joint_4",
+    "right_gripper_joint_1",
+    "right_gripper_joint_2",
+    "right_gripper_joint_3",
+    "right_gripper_joint_4"
+  ],
+  "description_revision": "80fbd2d650c43c38916979c2a6eab7a4c79e38de",
+  "deployment_revision": "bc76b0fe8399ecb84ce5492a6c385feb7d7a17a5",
+  "model_kind": "serial_urdf_frozen_end_effectors",
+  "contact_mode": "ground_only_no_self_collision"
+}

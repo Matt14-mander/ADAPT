@@ -10,7 +10,7 @@ import torch
 from mjlab.rl.exporter_utils import attach_metadata_to_onnx, get_base_metadata
 
 from deployment.config_manager import DeploymentConfig
-from common.paths import ASSET_DIR
+from common.paths import robot_asset_dir, task_robot, mujoco_path
 from tasks.registry import list_tasks, load_env_cfg, load_rl_cfg
 from common.training import make_runner, restore
 
@@ -26,7 +26,7 @@ def export(task, checkpoint, output, device):
         restore(runner, env, checkpoint, device)
         runner.export_policy_to_onnx(str(output.parent), output.name)
         attach_metadata_to_onnx(str(output), get_base_metadata(env.unwrapped, run_path="exported"))
-        model = mujoco.MjModel.from_xml_path(str(ASSET_DIR / "scene.xml"))
+        model = mujoco.MjModel.from_xml_path(mujoco_path(robot_asset_dir(task_robot(task)) / "scene.xml"))
         deployment = DeploymentConfig.from_env(task, cfg, model)
         deployment.save(output.with_suffix(".json"), output)
         # Verify the complete normalizer + actor export against real task observations.

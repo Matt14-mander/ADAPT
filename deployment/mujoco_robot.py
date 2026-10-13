@@ -3,7 +3,8 @@
 import mujoco
 import numpy as np
 
-from common.paths import ASSET_DIR
+from common.paths import mujoco_path
+
 from deployment.config_manager import configure_model
 from deployment.robot_interface import RobotInterface, RobotState
 
@@ -11,18 +12,21 @@ from deployment.robot_interface import RobotInterface, RobotState
 class MujocoRobot(RobotInterface):
     def __init__(self, cfg, *, seed=0, encoder_noise=False):
         self.cfg = cfg
-        self.model = mujoco.MjModel.from_xml_path(str(ASSET_DIR / "scene.xml"))
+        self.model = mujoco.MjModel.from_xml_path(mujoco_path(cfg.scene_path))
         self.actuators = configure_model(self.model, cfg)
         self.data = mujoco.MjData(self.model)
         self.rng = np.random.default_rng(seed)
         self.encoder_noise = encoder_noise
-        self.lin_adr = self.model.sensor("robot/imu_lin_vel").adr[0]
-        self.ang_adr = self.model.sensor("robot/imu_ang_vel").adr[0]
-        self.body_id = self.model.body("pelvis").id
+        prefix = "" if cfg.robot == "oli" else "robot/"
+        self.lin_adr = self.model.sensor(prefix + "imu_lin_vel").adr[0]
+        self.ang_adr = self.model.sensor(prefix + "imu_ang_vel").adr[0]
+        self.body_id = self.model.body(cfg.base_body).id
         self.state = None
 
     def configure(self, cfg):
         """Apply the active policy's PD gains and timing without resetting the pose."""
+        if (cfg.robot, cfg.variant, cfg.base_body) != (self.cfg.robot, self.cfg.variant, self.cfg.base_body):
+            raise ValueError("Cannot switch between different robot models in one simulation")
         self.actuators = configure_model(self.model, cfg)
         self.cfg = cfg
         self.data.ctrl[self.actuators] = self.data.qpos[7:]
@@ -30,21 +34,23 @@ class MujocoRobot(RobotInterface):
 
     def reset(self, default_angles=None):
         mujoco.mj_resetData(self.model, self.data)
-        self.data.qpos[:3] = [0, 0, 0.76]
+        self.data.qpos[:3] = self.cfg.default_base_position
         self.data.qpos[3:7] = [1, 0, 0, 0]
         angles = self.cfg.default_position if default_angles is None else default_angles
         self.data.qpos[7:] = angles
         self.data.ctrl[self.actuators] = angles
         mujoco.mj_forward(self.model, self.data)
-        self.bias = self.rng.uniform(-0.015, 0.015, 29) if self.encoder_noise else np.zeros(29)
+        n = len(self.cfg.joint_names)
+        self.bias = self.rng.uniform(-0.015, 0.015, n) if self.encoder_noise else np.zeros(n)
         return self.read_state()
 
     def read_state(self):
         """Sample one control-rate state, including optional encoder noise."""
         q, v = self.data.qpos.copy(), self.data.qvel.copy()
         if self.encoder_noise:
-            q[7:] += self.bias + self.rng.uniform(-1e-4, 1e-4, 29)
-            v[6:] += self.rng.uniform(-0.03, 0.03, 29)
+            n = len(self.cfg.joint_names)
+            q[7:] += self.bias + self.rng.uniform(-1e-4, 1e-4, n)
+            v[6:] += self.rng.uniform(-0.03, 0.03, n)
         self.state = RobotState(
             q,
             v,

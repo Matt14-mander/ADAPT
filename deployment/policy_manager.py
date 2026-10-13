@@ -39,6 +39,7 @@ class BasePolicy(ABC):
             gain=self.cfg.observer_gain,
             filter_order=self.cfg.filter_order,
             cutoff_hz=self.cfg.cutoff_hz,
+            reference_body=self.cfg.base_body,
         )
         return self.observer
 
@@ -107,7 +108,7 @@ class VelocityPolicy(BasePolicy):
         if len(inputs) != 1 or inputs[0].shape != [1, cfg.observation_dim]:
             raise ValueError("ONNX input shape does not match deployment configuration")
         if len(outputs) != 1 or outputs[0].shape != [1, len(cfg.joint_names)]:
-            raise ValueError("ONNX output shape does not match G1 action dimension")
+            raise ValueError("ONNX output shape does not match exported joint action dimension")
         self.input_name = inputs[0].name
         super().__init__(cfg, name or path.stem)
 

@@ -13,8 +13,8 @@ import numpy as np
 FIELDS = [
     ("local_residual", slice(0, 3), "Pelvis-frame base residual [N]"),
     ("local_residual", slice(3, 6), "Pelvis-frame base torque [Nm]"),
-    ("local_residual", slice(6, 35), "Joint residuals [Nm]"),
-    ("scaled_residual", slice(0, 35), "Effort-scaled residual"),
+    ("local_residual", slice(6, None), "Joint residuals [Nm]"),
+    ("scaled_residual", slice(None), "Effort-scaled residual"),
     ("actor_residual", slice(None), "Actual actor residual (light-step = zero)"),
     ("linear_velocity", slice(None), "Pelvis velocity [m/s]"),
 ]

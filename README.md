@@ -2,6 +2,10 @@
 
 Project page: [ADAPT](https://blyu413.github.io/adapt-locomotion/)
 
+Experimental OLI HU_D04 gripper adaptation: see [OLI_MIGRATION.md](OLI_MIGRATION.md)
+for model assumptions, Stage 1 training commands, and validation. OLI requires
+newly trained checkpoints; the released policies below remain G1 policies.
+
 Paper: [arXiv:2606.16542](https://arxiv.org/abs/2606.16542)
 
 ![ADAPT overview](images/overview.png)
