@@ -4,7 +4,7 @@ import torch
 
 
 class VectorizedMoMo:
-    """Vectorized Momentum Observer for parallel environments.
+    """Vectorized Momentum Observer for parallel environments. - PyTorch implementation.
 
     Maintains independent MoMo state for each environment and supports batch updates.
     Uses the ideal robot model's momentum and bias forces for the disturbance-free

@@ -52,10 +52,14 @@ class MomentumObserver:
         self.data.qpos[:] = qpos
         self.data.qvel[:] = qvel
         self.data.ctrl[:] = ctrl
-        mujoco.mj_forward(self.model, self.data)
+        mujoco.mj_forward(self.model, self.data)  # calculate forward dynamics in the current state
         momentum = np.zeros(self.model.nv)
-        mujoco.mj_mulM(self.model, self.data, momentum, self.data.qvel)
+        # p=Mq'
+        # calculate the current momentum based on the mass matrix and joint velocities 
+        mujoco.mj_mulM(self.model, self.data, momentum, self.data.qvel) 
+        # known represents the forces applied by actuators and passive elements minus the bias forces
         known = self.data.qfrc_actuator + self.data.qfrc_passive - self.data.qfrc_bias
+        # self.raw represents the estimated momentum based on the observer's internal state
         self.raw = (
             self.raw
             + self.gain * (momentum - self.previous_momentum)
@@ -64,7 +68,7 @@ class MomentumObserver:
         self.previous_momentum[:] = momentum
         if self.sos is None:
             self.filtered[:] = self.raw
-        else:
+        else: # Butterworth filter
             filtered, self.filter_state = sosfilt(
                 self.sos,
                 self.raw.reshape(1, -1),

@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 _DEFAULT_ASSET_CFG = SceneEntityCfg("robot")
 
+# 构造腿部残差和左右腿 RMS 包络；提供共享编码器观测及足部状态。
 LEG_EFFORT_JOINT_NAMES = (
     "left_hip_pitch_joint",
     "left_hip_roll_joint",
@@ -102,7 +103,7 @@ def _momo_joint_ids(
         )[asset_cfg.joint_ids]
     return torch.as_tensor(asset_cfg.joint_ids, device=env.device, dtype=torch.long)
 
-
+# 将 MoMo 残差转到机器人局部坐标系、扣除名义重力基线并缩放；
 def _momo_effort_scale_ctrl_ids(
     env: MoMoEnv,
     asset: Entity,
