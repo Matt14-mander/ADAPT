@@ -1,0 +1,12 @@
+{
+  "seconds": 60.0,
+  "separation": 1.1,
+  "command": [0.1, 0.0, 0.0],
+  "box_mass": 0.5,
+  "box_size": [0.3, 0.44, 0.2],
+  "connection": "weld",
+  "grasp_time_constant": 0.08,
+  "grasp_torque_scale": 0.03,
+  "formation": true,
+  "arm_hold": 0.0
+}

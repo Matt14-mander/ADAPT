@@ -41,6 +41,7 @@ adapt-train = "scripts.train:main"
 adapt-two-stage = "scripts.train_two_stage:main"
 adapt-export = "scripts.export_onnx:main"
 adapt-play = "scripts.play:main"
+adapt-carry = "scripts.cooperative_carry:main"
 
 [tool.uv]
 default-groups = []

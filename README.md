@@ -6,6 +6,9 @@ Experimental OLI HU_D04 gripper adaptation: see [OLI_MIGRATION.md](OLI_MIGRATION
 for model assumptions, Stage 1 training commands, and validation. OLI requires
 newly trained checkpoints; the released policies below remain G1 policies.
 
+Two-OLI pre-attached carrying demo: see [COOPERATIVE_CARRY.md](COOPERATIVE_CARRY.md)
+for `adapt-carry`, payload/grasp settings, diagnostics, and known limitations.
+
 Paper: [arXiv:2606.16542](https://arxiv.org/abs/2606.16542)
 
 ![ADAPT overview](images/overview.png)
