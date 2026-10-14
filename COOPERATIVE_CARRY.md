@@ -44,7 +44,7 @@ uv run --frozen --extra train adapt-carry \
 ```bash
 uv run --frozen --extra train adapt-carry \
   --config configs/cooperative_carry/oli_pair.json \
-  --checkpoint "$OLI_CARRY_POLICY" \
+  --checkpoint "$OLI_EXPORT_DIR/oli.onnx" \
   --pause-on-failure
 ```
 
@@ -62,7 +62,7 @@ uv run --frozen --extra train adapt-carry \
 
 ```bash
 uv run --frozen --extra train adapt-carry \
-  --checkpoint "$OLI_CARRY_POLICY" \
+  --checkpoint "$OLI_EXPORT_DIR/oli.onnx" \
   --arm-hold 0.5 --pause-on-failure
 ```
 
@@ -88,19 +88,33 @@ MUJOCO_GL=egl uv run --frozen --extra train adapt-carry \
 ```bash
 # 缓慢转向；这比直线搬运更难。
 uv run --frozen --extra train adapt-carry \
-  --checkpoint "$OLI_CARRY_POLICY" --command 0.1 0 0.05
+  --checkpoint "$OLI_EXPORT_DIR/oli.onnx"  --command 0.1 0 0.05
 
 # 增加箱子质量。
 uv run --frozen --extra train adapt-carry \
-  --checkpoint "$OLI_CARRY_POLICY" --box-mass 1.0
+  --checkpoint "$OLI_EXPORT_DIR/oli.onnx" --box-mass 1.0
 
 # 比较点连接，允许箱体更自由地转动。
 uv run --frozen --extra train adapt-carry \
-  --checkpoint "$OLI_CARRY_POLICY" --connection connect
+  --checkpoint "$OLI_EXPORT_DIR/oli.onnx" --connection connect
 
 # 关闭队形反馈，比较相互拉扯和队形偏离。
 uv run --frozen --extra train adapt-carry \
-  --checkpoint "$OLI_CARRY_POLICY" --no-formation
+  --checkpoint "$OLI_EXPORT_DIR/oli.onnx" --no-formation
+
+  uv run --frozen --extra train adapt-carry \
+  --checkpoint "$OLI_EXPORT_DIR/oli.onnx" \
+  --command 0.2 0 0 \
+  --seconds 20 \
+  --no-formation \
+  --pause-on-failure
+
+uv run --frozen --extra train adapt-carry \
+  --checkpoint "$OLI_EXPORT_DIR/oli.onnx" \
+  --command 0.2 0 0 \
+  --seconds 60 \
+  --no-formation \
+  --pause-on-failure
 ```
 
 ## 连接与物理建模
