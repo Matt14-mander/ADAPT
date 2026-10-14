@@ -35,6 +35,16 @@ def parse_args():
         parser.error("--pd-check cannot be combined with checkpoints")
     if not args.pd_check and args.checkpoint is None:
         parser.error("Provide --checkpoint, or explicitly select --pd-check")
+    for name in ("checkpoint", "checkpoint_b"):
+        path = getattr(args, name)
+        if path is None:
+            continue
+        if not path.name:
+            parser.error(f"--{name.replace('_', '-')} is empty or points to a directory; check that your shell policy variable is set")
+        if path.suffix.lower() != ".onnx" or not path.is_file():
+            parser.error(f"Expected an existing ONNX file: {path}")
+        if not path.with_suffix(".json").is_file():
+            parser.error(f"Missing matching policy JSON: {path.with_suffix('.json')}")
     if args.headless and args.pause_on_failure:
         parser.error("--pause-on-failure requires the viewer")
     return parser, args
