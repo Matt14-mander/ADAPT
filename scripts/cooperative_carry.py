@@ -15,6 +15,7 @@ def parse_args():
     parser.add_argument("--config", type=Path)
     parser.add_argument("--mode", choices=("pair", "solo"), help="Two-robot carry or one OLI holding the box with both arms")
     parser.add_argument("--solo-arm-test", action="store_true", help="Diagnostic: keep solo IK arm pose but park the unconnected box on the floor beside the robot")
+    parser.add_argument("--solo-arm-pose-scale", type=float, help="Arm diagnostic pose: 0=policy defaults, 1=full IK pose; requires --solo-arm-test")
     parser.add_argument("--checkpoint", type=Path, help="OLI ONNX with a matching JSON; used independently by both robots")
     parser.add_argument("--checkpoint-b", type=Path, help="Optional second compatible OLI ONNX")
     parser.add_argument("--pd-check", action="store_true", help="Fixed-default-position diagnostic; does not validate locomotion")
@@ -107,7 +108,7 @@ def main():
             cfg.box_size = (0.28, 0.30, 0.20)
             cfg.grasp_torque_scale = 0.5
             cfg.formation = False
-    for name in ("seconds", "command", "box_mass", "separation", "connection", "arm_hold", "seed"):
+    for name in ("seconds", "command", "box_mass", "separation", "connection", "arm_hold", "seed", "solo_arm_pose_scale"):
         value = getattr(args, name)
         if value is not None:
             setattr(cfg, name, value)
@@ -130,6 +131,7 @@ def main():
         print(f"SOLO: two pre-attached hands, IK arm hold={cfg.arm_hold:.2f}; walking with this pose requires policy validation.")
     if cfg.solo_arm_test:
         print("ARM-POSE DIAGNOSTIC: box parked beside robot, no grasp or payload support; grasp gaps and box metrics are not carry results.")
+        print(f"Arm pose scale={cfg.solo_arm_pose_scale:.2f}, hold blend={cfg.arm_hold:.2f}")
     metadata = dict(config=cfg.as_dict(), diagnostic=args.pd_check or cfg.solo_arm_test,
         checkpoints=([str(args.checkpoint.resolve())] +
             ([str((args.checkpoint_b or args.checkpoint).resolve())] if cfg.mode == "pair" else [])) if args.checkpoint else [],

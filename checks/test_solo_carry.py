@@ -87,6 +87,19 @@ class SoloCarryTests(unittest.TestCase):
         np.testing.assert_allclose(diagnostic.grasp.payload_wrenches(), 0)
         self.assertFalse(diagnostic.summary(True, diagnostic=True)["success"])
 
+    def test_diagnostic_pose_scale_separates_pose_from_control_override(self):
+        full = make_solo(connection="none", solo_arm_test=True)
+        baseline = make_solo(connection="none", solo_arm_test=True, solo_arm_pose_scale=0, arm_hold=0)
+        partial = make_solo(connection="none", solo_arm_test=True, solo_arm_pose_scale=0.25)
+        default = np.asarray(baseline.views[0].cfg.default_position)
+        np.testing.assert_allclose(baseline.states[0].qpos[7:], default)
+        np.testing.assert_allclose(baseline.agents[0].policy.obs_gen.last_action, 0)
+        np.testing.assert_allclose(partial.states[0].qpos[7:], default + 0.25 * (full.states[0].qpos[7:] - default))
+        baseline.step()
+        np.testing.assert_allclose(baseline.agents[0].targets, default)
+        with self.assertRaisesRegex(ValueError, "requires solo_arm_test"):
+            make_solo(solo_arm_pose_scale=0.25)
+
     def test_lower_handle_weld_resists_flip_with_stationary_robot_fixture(self):
         # Test boundary fixture ONLY: reset robot coordinates each physics step
         # to separate grasp stability from learned standing. Never used in demo.

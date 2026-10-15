@@ -87,6 +87,11 @@ def build_solo_scene(policy_cfgs, cfg):
         raise ValueError("Solo payload would intersect the floor")
     targets = [center + [0, sign * (half[1] + 0.035), -half[2]] for sign in (1, -1)]
     pose = solve_arms(preliminary, data, view, targets, names)
+    if cfg.solo_arm_test:
+        default = np.asarray(pc.default_position)
+        pose = default + cfg.solo_arm_pose_scale * (pose - default)
+        data.qpos[view.qadr] = pose
+        mujoco.mj_forward(preliminary, data)
     points = [data.site_xpos[preliminary.site(name).id].copy() for name in names]
     rotations = [data.site_xmat[preliminary.site(name).id].copy() for name in names]
     if cfg.solo_arm_test:

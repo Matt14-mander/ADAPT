@@ -11,6 +11,7 @@ import numpy as np
 class CarryConfig:
     mode: str = "pair"
     solo_arm_test: bool = False
+    solo_arm_pose_scale: float = 1.0
     solo_box_center: tuple[float, float, float] = (0.32, 0.0, 1.12)
     seconds: float = 60.0
     separation: float = 1.10
@@ -61,6 +62,10 @@ class CarryConfig:
             raise ValueError("mode must be pair or solo")
         if self.solo_arm_test and (self.mode != "solo" or self.connection != "none"):
             raise ValueError("solo_arm_test requires solo mode and connection=none")
+        if not 0 <= self.solo_arm_pose_scale <= 1:
+            raise ValueError("solo_arm_pose_scale must be in [0, 1]")
+        if self.solo_arm_pose_scale != 1 and not self.solo_arm_test:
+            raise ValueError("solo_arm_pose_scale requires solo_arm_test; partial poses do not align with the box")
         for name, value in self.as_dict().items():
             if isinstance(value, (int, float, list, tuple)) and not np.isfinite(value).all():
                 raise ValueError(f"{name} must be finite")
