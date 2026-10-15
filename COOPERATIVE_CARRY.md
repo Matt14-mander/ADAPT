@@ -192,3 +192,186 @@ checks/test_cooperative.py
 
 原有单机 `adapt-sim`、训练任务和 G1 模型无需修改。第一版只接入现有 OLI ONNX/JSON
 策略接口，尚未实现 CHIP 策略适配、自主抓取、四手搬运或协同策略训练。
+
+@@ test box weight 1-7 sucess >8 fail
+
+matt14@server-Super-Server:~/workspace/ADAPT$ uv run --frozen --extra train adapt-carry \
+  --checkpoint "$OLI_EXPORT_DIR/oli.onnx" --box-mass 10
+2026-10-15 16:50:08.318210325 [W:onnxruntime:Default, device_discovery.cc:164 DiscoverDevicesForPlatform] GPU device discovery failed: device_discovery.cc:89 ReadFileContents Failed to open file: "/sys/class/drm/card0/device/vendor"
+t=0.0s settle | formation=0.000m box tilt=0.0deg grasp=0.000m
+t=1.0s settle | formation=0.055m box tilt=1.2deg grasp=0.016m
+t=2.0s settle | formation=0.054m box tilt=0.2deg grasp=0.016m
+t=3.0s accelerate | formation=0.051m box tilt=0.5deg grasp=0.016m
+t=4.0s accelerate | formation=0.049m box tilt=0.1deg grasp=0.016m
+t=5.0s accelerate | formation=0.042m box tilt=0.2deg grasp=0.016m
+t=6.0s carry | formation=0.038m box tilt=0.2deg grasp=0.016m
+t=7.0s carry | formation=0.109m box tilt=3.7deg grasp=0.017m
+t=8.0s carry | formation=0.169m box tilt=0.5deg grasp=0.017m
+t=9.0s carry | formation=0.280m box tilt=0.9deg grasp=0.017m
+t=10.0s carry | formation=0.383m box tilt=5.2deg grasp=0.018m
+t=11.0s carry | formation=0.403m box tilt=5.5deg grasp=0.017m
+t=12.0s carry | formation=0.414m box tilt=2.4deg grasp=0.017m
+t=13.0s carry | formation=0.446m box tilt=8.1deg grasp=0.017m
+t=14.0s carry | formation=0.425m box tilt=6.5deg grasp=0.018m
+t=15.0s carry | formation=0.410m box tilt=2.3deg grasp=0.017m
+t=16.0s carry | formation=0.415m box tilt=1.8deg grasp=0.017m
+t=17.0s carry | formation=0.414m box tilt=0.5deg grasp=0.017m
+t=18.0s carry | formation=0.489m box tilt=0.9deg grasp=0.017m
+STOP: formation_separation_exceeded; failed state preserved, no automatic reset.
+{
+  "completed": false,
+  "success": false,
+  "diagnostic": false,
+  "failure": "formation_separation_exceeded",
+  "simulated_seconds": 18.200000000000664,
+  "box_displacement": 1.2093613207248912,
+  "team_displacement": 1.2032047531878867,
+  "min_box_clearance": 0.41270370111363636,
+  "max_grasp_error": 0.018695126026148062,
+  "max_spacing_error": 0.10546258167397649,
+  "max_formation_error": 0.5003584583155318,
+  "error": null,
+  "interrupted": false
+}
+Saved: outputs/carry_20261015_165008_674770
+X connection to :11 broken (explicit kill or server shutdown).
+free(): invalid pointer
+matt14@server-Super-Server:~/workspace/ADAPT$ uv run --frozen --extra train adapt-carry   --checkpoint "$OLI_EXPORT_DIR/oli.onnx" --box-mass 20
+2026-10-15 16:50:47.070946057 [W:onnxruntime:Default, device_discovery.cc:164 DiscoverDevicesForPlatform] GPU device discovery failed: device_discovery.cc:89 ReadFileContents Failed to open file: "/sys/class/drm/card0/device/vendor"
+t=0.0s settle | formation=0.000m box tilt=0.0deg grasp=0.000m
+t=1.0s settle | formation=0.080m box tilt=0.9deg grasp=0.031m
+t=2.0s settle | formation=0.088m box tilt=0.5deg grasp=0.031m
+t=3.0s accelerate | formation=0.085m box tilt=0.3deg grasp=0.031m
+t=4.0s accelerate | formation=0.086m box tilt=0.2deg grasp=0.031m
+t=5.0s accelerate | formation=0.093m box tilt=0.4deg grasp=0.031m
+t=6.0s carry | formation=0.364m box tilt=2.6deg grasp=0.032m
+STOP: formation_separation_exceeded; failed state preserved, no automatic reset.
+{
+  "completed": false,
+  "success": false,
+  "diagnostic": false,
+  "failure": "formation_separation_exceeded",
+  "simulated_seconds": 6.539999999999883,
+  "box_displacement": 0.42421481182290915,
+  "team_displacement": 0.3696382250259587,
+  "min_box_clearance": 0.37374830156459615,
+  "max_grasp_error": 0.033136501663897165,
+  "max_spacing_error": 0.06710359987153902,
+  "max_formation_error": 0.5035095009770213,
+  "error": null,
+  "interrupted": false
+}
+Saved: outputs/carry_20261015_165047_462688
+matt14@server-Super-Server:~/workspace/ADAPT$ uv run --frozen --extra train adapt-carry   --checkpoint "$OLI_EXPORT_DIR/oli.onnx" --box-mass 12
+2026-10-15 16:51:00.977119955 [W:onnxruntime:Default, device_discovery.cc:164 DiscoverDevicesForPlatform] GPU device discovery failed: device_discovery.cc:89 ReadFileContents Failed to open file: "/sys/class/drm/card0/device/vendor"
+t=0.0s settle | formation=0.000m box tilt=0.0deg grasp=0.000m
+t=1.0s settle | formation=0.062m box tilt=1.2deg grasp=0.019m
+t=2.0s settle | formation=0.062m box tilt=0.3deg grasp=0.019m
+t=3.0s accelerate | formation=0.058m box tilt=0.5deg grasp=0.019m
+t=4.0s accelerate | formation=0.057m box tilt=0.1deg grasp=0.019m
+t=5.0s accelerate | formation=0.050m box tilt=0.2deg grasp=0.019m
+t=6.0s carry | formation=0.049m box tilt=0.2deg grasp=0.019m
+t=7.0s carry | formation=0.140m box tilt=3.0deg grasp=0.019m
+t=8.0s carry | formation=0.206m box tilt=1.0deg grasp=0.020m
+t=9.0s carry | formation=0.332m box tilt=1.0deg grasp=0.020m
+t=10.0s carry | formation=0.332m box tilt=0.2deg grasp=0.020m
+t=11.0s carry | formation=0.390m box tilt=2.4deg grasp=0.019m
+t=12.0s carry | formation=0.399m box tilt=2.5deg grasp=0.020m
+t=13.0s carry | formation=0.474m box tilt=0.8deg grasp=0.019m
+STOP: formation_separation_exceeded; failed state preserved, no automatic reset.
+{
+  "completed": false,
+  "success": false,
+  "diagnostic": false,
+  "failure": "formation_separation_exceeded",
+  "simulated_seconds": 13.440000000000701,
+  "box_displacement": 0.7445072693892354,
+  "team_displacement": 0.7419401702826038,
+  "min_box_clearance": 0.40813177274425577,
+  "max_grasp_error": 0.021127265512182577,
+  "max_spacing_error": 0.08894545492003414,
+  "max_formation_error": 0.5001418445139248,
+  "error": null,
+  "interrupted": false
+}
+Saved: outputs/carry_20261015_165101_363329
+matt14@server-Super-Server:~/workspace/ADAPT$ uv run --frozen --extra train adapt-carry   --checkpoint "$OLI_EXPORT_DIR/oli.onnx" --box-mass 6
+2026-10-15 16:51:20.307716308 [W:onnxruntime:Default, device_discovery.cc:164 DiscoverDevicesForPlatform] GPU device discovery failed: device_discovery.cc:89 ReadFileContents Failed to open file: "/sys/class/drm/card0/device/vendor"
+t=0.0s settle | formation=0.000m box tilt=0.0deg grasp=0.000m
+t=1.0s settle | formation=0.038m box tilt=0.9deg grasp=0.010m
+t=2.0s settle | formation=0.036m box tilt=0.2deg grasp=0.010m
+t=3.0s accelerate | formation=0.034m box tilt=0.3deg grasp=0.010m
+t=4.0s accelerate | formation=0.032m box tilt=0.3deg grasp=0.010m
+t=5.0s accelerate | formation=0.025m box tilt=0.2deg grasp=0.010m
+t=6.0s carry | formation=0.019m box tilt=0.5deg grasp=0.010m
+t=7.0s carry | formation=0.033m box tilt=8.6deg grasp=0.013m
+t=8.0s carry | formation=0.109m box tilt=1.5deg grasp=0.011m
+t=9.0s carry | formation=0.185m box tilt=1.4deg grasp=0.012m
+t=10.0s carry | formation=0.231m box tilt=5.3deg grasp=0.011m
+t=11.0s carry | formation=0.251m box tilt=6.2deg grasp=0.012m
+t=12.0s carry | formation=0.283m box tilt=4.4deg grasp=0.012m
+t=13.0s carry | formation=0.289m box tilt=8.2deg grasp=0.012m
+t=14.0s carry | formation=0.287m box tilt=1.8deg grasp=0.011m
+t=15.0s carry | formation=0.263m box tilt=0.4deg grasp=0.011m
+t=16.0s carry | formation=0.252m box tilt=3.1deg grasp=0.011m
+t=17.0s carry | formation=0.271m box tilt=4.0deg grasp=0.012m
+t=18.0s carry | formation=0.277m box tilt=1.6deg grasp=0.012m
+t=19.0s carry | formation=0.268m box tilt=2.2deg grasp=0.013m
+t=20.0s carry | formation=0.258m box tilt=4.7deg grasp=0.012m
+t=21.0s carry | formation=0.266m box tilt=0.7deg grasp=0.012m
+t=22.0s carry | formation=0.271m box tilt=5.5deg grasp=0.012m
+t=23.0s carry | formation=0.250m box tilt=5.0deg grasp=0.012m
+t=24.0s carry | formation=0.247m box tilt=1.9deg grasp=0.013m
+t=25.0s carry | formation=0.267m box tilt=6.7deg grasp=0.012m
+t=26.0s carry | formation=0.279m box tilt=1.9deg grasp=0.011m
+t=27.0s carry | formation=0.293m box tilt=4.5deg grasp=0.012m
+t=28.0s carry | formation=0.298m box tilt=2.2deg grasp=0.012m
+t=29.0s carry | formation=0.303m box tilt=2.5deg grasp=0.011m
+t=30.0s carry | formation=0.296m box tilt=0.4deg grasp=0.012m
+t=31.0s carry | formation=0.296m box tilt=5.1deg grasp=0.012m
+t=32.0s carry | formation=0.330m box tilt=3.0deg grasp=0.012m
+t=33.0s carry | formation=0.341m box tilt=6.0deg grasp=0.012m
+t=34.0s carry | formation=0.334m box tilt=5.3deg grasp=0.012m
+t=35.0s carry | formation=0.374m box tilt=6.6deg grasp=0.012m
+t=36.0s carry | formation=0.349m box tilt=5.6deg grasp=0.013m
+t=37.0s carry | formation=0.351m box tilt=1.0deg grasp=0.012m
+t=38.0s carry | formation=0.343m box tilt=1.7deg grasp=0.011m
+t=39.0s carry | formation=0.352m box tilt=3.7deg grasp=0.012m
+t=40.0s carry | formation=0.358m box tilt=3.4deg grasp=0.012m
+t=41.0s carry | formation=0.345m box tilt=4.3deg grasp=0.012m
+t=42.0s carry | formation=0.337m box tilt=1.1deg grasp=0.012m
+t=43.0s carry | formation=0.330m box tilt=6.4deg grasp=0.012m
+t=44.0s carry | formation=0.334m box tilt=2.6deg grasp=0.012m
+t=45.0s carry | formation=0.321m box tilt=4.7deg grasp=0.012m
+t=46.0s carry | formation=0.300m box tilt=6.0deg grasp=0.012m
+t=47.0s carry | formation=0.291m box tilt=0.5deg grasp=0.012m
+t=48.0s carry | formation=0.285m box tilt=8.2deg grasp=0.013m
+t=49.0s carry | formation=0.287m box tilt=3.4deg grasp=0.012m
+t=50.0s carry | formation=0.272m box tilt=2.3deg grasp=0.011m
+t=51.0s carry | formation=0.277m box tilt=5.5deg grasp=0.012m
+t=52.0s carry | formation=0.256m box tilt=1.5deg grasp=0.012m
+t=53.0s carry | formation=0.245m box tilt=2.2deg grasp=0.012m
+t=54.0s carry | formation=0.240m box tilt=1.2deg grasp=0.011m
+t=55.0s decelerate | formation=0.233m box tilt=1.9deg grasp=0.011m
+t=56.0s decelerate | formation=0.267m box tilt=1.6deg grasp=0.011m
+t=57.0s decelerate | formation=0.266m box tilt=1.3deg grasp=0.010m
+t=58.0s hold | formation=0.267m box tilt=0.2deg grasp=0.010m
+t=59.0s hold | formation=0.268m box tilt=0.2deg grasp=0.010m
+t=60.0s hold | formation=0.267m box tilt=0.2deg grasp=0.010m
+{
+  "completed": true,
+  "success": true,
+  "diagnostic": false,
+  "failure": null,
+  "simulated_seconds": 60.00000000001224,
+  "box_displacement": 4.964152361777193,
+  "team_displacement": 4.958889068403855,
+  "min_box_clearance": 0.42113125353716535,
+  "max_grasp_error": 0.013248157414391637,
+  "max_spacing_error": 0.07044536000962065,
+  "max_formation_error": 0.37624870370145663,
+  "error": null,
+  "interrupted": false
+}
+Saved: outputs/carry_20261015_165120_686681
+^C
