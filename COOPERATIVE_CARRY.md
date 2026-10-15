@@ -25,6 +25,21 @@ uv run --frozen --extra train adapt-carry \
   --command 0.1 0 0 --seconds 60 --pause-on-failure
 ```
 
+如果零速度下也明显漂移或摔倒，先隔离双臂姿态与负载的影响：
+
+```bash
+uv run --frozen --extra train adapt-carry \
+  --config configs/cooperative_carry/oli_solo.json \
+  --checkpoint "${OLI_EXPORT_DIR:?请先设置策略导出目录}/oli.onnx" \
+  --solo-arm-test --command 0 0 0 --seconds 10 --pause-on-failure
+```
+
+这个诊断保持相同 IK 姿态和手臂控制，但把箱子放在旁边地面上、不连接机器人。
+它不测试搬运，`diagnostic=true`，不会判为搬运成功；箱子与手的距离也不作为连接稳定性指标。
+若仍失稳，说明仅改变双臂姿态就足以暴露策略适应性问题；若站稳，再与 0.05 kg 和
+0.5 kg 的连接负载对比。两种结果都不能单凭一次试验断言确切原因。
+单机终端输出额外显示机器人倾角、机身高度、双臂最大跟踪误差和力矩使用比例。
+
 也可不加载配置，使用 `--mode solo`；默认箱子尺寸为 0.28 × 0.30 × 0.20 m、质量 0.5 kg，
 中心坐标为初始机器人前方 0.32 m、世界高度 1.12 m，左右手位于箱子下侧。
 单机默认关闭虚拟领队位置纠偏，直接给策略速度指令；若 0.1 m/s 不启动，可对照测试 0.2 m/s。

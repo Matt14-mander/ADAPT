@@ -14,6 +14,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path)
     parser.add_argument("--mode", choices=("pair", "solo"), help="Two-robot carry or one OLI holding the box with both arms")
+    parser.add_argument("--solo-arm-test", action="store_true", help="Diagnostic: keep solo IK arm pose but park the unconnected box on the floor beside the robot")
     parser.add_argument("--checkpoint", type=Path, help="OLI ONNX with a matching JSON; used independently by both robots")
     parser.add_argument("--checkpoint-b", type=Path, help="Optional second compatible OLI ONNX")
     parser.add_argument("--pd-check", action="store_true", help="Fixed-default-position diagnostic; does not validate locomotion")
@@ -92,6 +93,11 @@ def main():
     cfg = CarryConfig.load(args.config) if args.config else CarryConfig()
     if args.mode is not None:
         cfg.mode = args.mode
+    if args.solo_arm_test:
+        if cfg.mode != "solo":
+            parser.error("--solo-arm-test requires --mode solo or the solo config")
+        cfg.solo_arm_test = True
+        cfg.connection = "none"
     if cfg.mode == "solo":
         if args.checkpoint_b:
             parser.error("--checkpoint-b is only available in pair mode")
@@ -120,9 +126,11 @@ def main():
         if cfg.mode == "pair":
             policies.append(load_policy(args.checkpoint_b or args.checkpoint, name="robot_b"))
     simulation = CarrySimulation(policies, cfg)
-    if cfg.mode == "solo":
+    if cfg.mode == "solo" and not cfg.solo_arm_test:
         print(f"SOLO: two pre-attached hands, IK arm hold={cfg.arm_hold:.2f}; walking with this pose requires policy validation.")
-    metadata = dict(config=cfg.as_dict(), diagnostic=args.pd_check,
+    if cfg.solo_arm_test:
+        print("ARM-POSE DIAGNOSTIC: box parked beside robot, no grasp or payload support; grasp gaps and box metrics are not carry results.")
+    metadata = dict(config=cfg.as_dict(), diagnostic=args.pd_check or cfg.solo_arm_test,
         checkpoints=([str(args.checkpoint.resolve())] +
             ([str((args.checkpoint_b or args.checkpoint).resolve())] if cfg.mode == "pair" else [])) if args.checkpoint else [],
         policy_hashes=[p.cfg.model_sha256 for p in policies], mujoco_version=mujoco.__version__,
@@ -172,8 +180,14 @@ def main():
                     writer.append_data(renderer.render())
                     next_video_time += 1 / 30
                 if simulation.data.time >= next_print_time:
-                    print(f"t={record['time']:.1f}s {record['phase']} | formation={record['formation_error']:.3f}m "
-                          f"box tilt={record['box_tilt_deg']:.1f}deg grasp={max(record['grasp_position_error']):.3f}m")
+                    if cfg.mode == "solo":
+                        payload_text = "box disconnected" if cfg.solo_arm_test else f"box tilt={record['box_tilt_deg']:.1f}deg grasp={max(record['grasp_position_error']):.3f}m"
+                        print(f"t={record['time']:.1f}s {record['phase']} | {payload_text} "
+                              f"robot tilt={max(record['robot_tilt_deg']):.1f}deg base={min(record['base_heights']):.3f}m "
+                              f"arm error={max(record['arm_max_position_error']):.3f}rad effort={max(record['arm_max_effort_ratio']):.2f}")
+                    else:
+                        print(f"t={record['time']:.1f}s {record['phase']} | formation={record['formation_error']:.3f}m "
+                              f"box tilt={record['box_tilt_deg']:.1f}deg grasp={max(record['grasp_position_error']):.3f}m")
                     next_print_time += 1
                 if simulation.failure:
                     print(f"STOP: {simulation.failure}; failed state preserved, no automatic reset.")
@@ -196,7 +210,7 @@ def main():
             writer.close()
         if renderer:
             renderer.close()
-        summary = simulation.summary(completed, diagnostic=args.pd_check)
+        summary = simulation.summary(completed, diagnostic=args.pd_check or cfg.solo_arm_test)
         summary.update(error=error, interrupted=interrupted)
         telemetry.finish(summary)
         print(json.dumps(summary, indent=2))

@@ -89,13 +89,18 @@ def build_solo_scene(policy_cfgs, cfg):
     pose = solve_arms(preliminary, data, view, targets, names)
     points = [data.site_xpos[preliminary.site(name).id].copy() for name in names]
     rotations = [data.site_xmat[preliminary.site(name).id].copy() for name in names]
+    if cfg.solo_arm_test:
+        # Diagnostic: preserve the exact same IK arm pose, but park the real box
+        # beside the robot, resting on the floor without any hand connection.
+        center = np.array([position[0] + 1.5, position[1] + 1.5, half[2] + 0.002])
     box = spec.worldbody.add_body(name="payload", pos=center)
     box.add_freejoint(name="payload/free")
     box.add_geom(name="payload/box", type=mujoco.mjtGeom.mjGEOM_BOX, size=half,
         mass=cfg.box_mass, rgba=[0.85, 0.48, 0.12, 1], contype=8, conaffinity=1 | 2,
         friction=[0.6, 0.005, 0.0001])
     for i, (point, rotation, name, side) in enumerate(zip(points, rotations, names, ("left", "right"))):
-        local = point - center
+        local = (np.array([0, (1 if i == 0 else -1) * (half[1] + 0.035), -half[2]])
+                 if cfg.solo_arm_test else point - center)
         quat = np.zeros(4)
         mujoco.mju_mat2Quat(quat, rotation)
         box.add_site(name=f"payload/handle_{i}", pos=local, quat=quat,

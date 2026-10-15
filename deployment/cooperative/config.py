@@ -10,6 +10,7 @@ import numpy as np
 @dataclass
 class CarryConfig:
     mode: str = "pair"
+    solo_arm_test: bool = False
     solo_box_center: tuple[float, float, float] = (0.32, 0.0, 1.12)
     seconds: float = 60.0
     separation: float = 1.10
@@ -58,6 +59,8 @@ class CarryConfig:
     def validate(self):
         if self.mode not in ("pair", "solo"):
             raise ValueError("mode must be pair or solo")
+        if self.solo_arm_test and (self.mode != "solo" or self.connection != "none"):
+            raise ValueError("solo_arm_test requires solo mode and connection=none")
         for name, value in self.as_dict().items():
             if isinstance(value, (int, float, list, tuple)) and not np.isfinite(value).all():
                 raise ValueError(f"{name} must be finite")
