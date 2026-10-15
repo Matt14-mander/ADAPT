@@ -99,6 +99,7 @@ def main():
             cfg.arm_hold = 1.0
         if not args.config:
             cfg.box_size = (0.28, 0.30, 0.20)
+            cfg.grasp_torque_scale = 0.5
             cfg.formation = False
     for name in ("seconds", "command", "box_mass", "separation", "connection", "arm_hold", "seed"):
         value = getattr(args, name)

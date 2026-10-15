@@ -7,5 +7,6 @@
   "solo_box_center": [0.32, 0.0, 1.12],
   "arm_hold": 1.0,
   "connection": "weld",
+  "grasp_torque_scale": 0.5,
   "formation": false
 }
