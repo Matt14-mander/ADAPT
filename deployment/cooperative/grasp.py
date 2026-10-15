@@ -5,10 +5,10 @@ import numpy as np
 
 
 class GraspMonitor:
-    def __init__(self, model, data, prefixes, connected=True):
+    def __init__(self, model, data, prefixes, connected=True, grasp_sites=None):
         self.model, self.data = model, data
         self.connected = connected
-        self.grips = [model.site(prefix + "carry_grasp").id for prefix in prefixes]
+        self.grips = [model.site(name).id for name in (grasp_sites or [prefix + "carry_grasp" for prefix in prefixes])]
         self.handles = [model.site(f"payload/handle_{i}").id for i in range(2)]
         self.equalities = [model.equality(f"grasp_{i}").id for i in range(2)] if connected else []
         self.box_body = model.body("payload").id

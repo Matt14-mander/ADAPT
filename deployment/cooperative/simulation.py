@@ -1,4 +1,4 @@
-"""One shared simulation clock, two independent policy and MoMo instances."""
+"""One shared simulation clock, with a policy and nominal MoMo per robot."""
 
 import mujoco
 import numpy as np
@@ -12,21 +12,25 @@ from .scene_builder import build_scene, SIDES
 
 class CarrySimulation:
     def __init__(self, policies, cfg):
-        if len(policies) != 2 or policies[0] is policies[1]:
-            raise ValueError("Provide two independent policy instances")
+        count = 1 if cfg.mode == "solo" else 2
+        if len(policies) != count or (count == 2 and policies[0] is policies[1]):
+            raise ValueError(f"Provide {count} independent policy instances")
         self.cfg = cfg
         self.scene = build_scene([p.cfg for p in policies], cfg)
         self.model, self.data = self.scene.model, self.scene.data
         self.dt = policies[0].cfg.control_dt
         if cfg.seconds < self.dt:
             raise ValueError("seconds must cover at least one policy step")
-        seeds = np.random.SeedSequence(cfg.seed).spawn(2)
+        seeds = np.random.SeedSequence(cfg.seed).spawn(count)
         self.views = [RobotView(self.model, self.data, p.cfg, prefix,
                       rng=np.random.default_rng(seed), encoder_noise=cfg.encoder_noise)
                       for p, prefix, seed in zip(policies, self.scene.prefixes, seeds)]
-        self.agents = [CarryAgent(p, view, side, cfg.arm_hold) for p, view, side in zip(policies, self.views, SIDES)]
+        poses = self.scene.joint_positions or [None] * count
+        sides = ("both",) if count == 1 else SIDES
+        self.agents = [CarryAgent(p, view, side, cfg.arm_hold, pose)
+                       for p, view, side, pose in zip(policies, self.views, sides, poses)]
         self.formation = FormationController(cfg, self.dt)
-        self.grasp = GraspMonitor(self.model, self.data, self.scene.prefixes, cfg.connection != "none")
+        self.grasp = GraspMonitor(self.model, self.data, self.scene.prefixes, cfg.connection != "none", self.scene.grasp_sites)
         self.box_body = self.model.body("payload").id
         self.box_q = int(self.model.joint("payload/free").qposadr[0])
         self.box_v = int(self.model.joint("payload/free").dofadr[0])
@@ -37,6 +41,10 @@ class CarrySimulation:
         mujoco.mj_resetData(self.model, self.data)
         for view, position in zip(self.views, self.scene.robot_positions):
             view.reset(position)
+        if self.scene.joint_positions is not None:
+            for view, pose in zip(self.views, self.scene.joint_positions):
+                self.data.qpos[view.qadr] = pose
+                view.set_targets(pose)
         self.data.qpos[self.box_q:self.box_q + 3] = self.scene.box_position
         self.data.qpos[self.box_q + 3:self.box_q + 7] = [1, 0, 0, 0]
         mujoco.mj_forward(self.model, self.data)
@@ -52,7 +60,7 @@ class CarrySimulation:
         self.max_grasp_error = 0.0
         self.max_spacing_error = 0.0
         self.max_formation_error = 0.0
-        self.commands = np.zeros((2, 3))
+        self.commands = np.zeros((len(self.views), 3))
         self._numerical_warnings = self.data.warning.number[4:].copy()
         self.last_record = self.record()
         return self.last_record
@@ -61,7 +69,7 @@ class CarrySimulation:
         if self.failure is not None:
             raise RuntimeError("Simulation has failed; reset explicitly before stepping again")
         self.commands, _, self.phase = self.formation.commands(self.states, self.data.time)
-        # Both decisions use the same timestamp; RobotView never calls mj_step.
+        # All decisions use the same timestamp; RobotView never calls mj_step.
         for agent, state, command in zip(self.agents, self.states, self.commands):
             agent.decide(state, command)
         for _ in range(self.decimation):
@@ -109,10 +117,12 @@ class CarrySimulation:
         half = np.asarray(self.cfg.box_size) / 2
         clearance = float(self.data.xpos[self.box_body, 2] - np.abs(box_rotation[2]) @ half)
         position_errors, angle_errors = self.grasp.errors()
-        separation = float(np.linalg.norm(self.states[1].qpos[:2] - self.states[0].qpos[:2]))
-        spacing_error = abs(separation - self.cfg.separation)
-        delta = self.states[1].qpos[:2] - self.states[0].qpos[:2]
-        formation_error = float(np.linalg.norm(delta - rotation2(self.formation.yaw) @ [0, self.cfg.separation]))
+        separation = spacing_error = formation_error = 0.0
+        if len(self.states) == 2:
+            separation = float(np.linalg.norm(self.states[1].qpos[:2] - self.states[0].qpos[:2]))
+            spacing_error = abs(separation - self.cfg.separation)
+            delta = self.states[1].qpos[:2] - self.states[0].qpos[:2]
+            formation_error = float(np.linalg.norm(delta - rotation2(self.formation.yaw) @ [0, self.cfg.separation]))
         self.minimum_clearance = min(self.minimum_clearance, clearance)
         self.max_grasp_error = max(self.max_grasp_error, max(position_errors))
         self.max_spacing_error = max(self.max_spacing_error, spacing_error)
@@ -123,6 +133,10 @@ class CarrySimulation:
             robot_tilt_deg=[float(np.degrees(np.arccos(np.clip(s.body_rotation[2, 2], -1, 1)))) for s in self.states],
             linear_velocities=[s.linear_velocity.tolist() for s in self.states],
             angular_velocities=[s.angular_velocity.tolist() for s in self.states],
+            arm_max_position_error=[float(np.max(np.abs(s.qpos[7:][a.arm_indices] - a.targets[a.arm_indices])))
+                                    for a, s in zip(self.agents, self.states)],
+            arm_max_effort_ratio=[float(np.max(np.abs(self.data.actuator_force[a.view.actuators[a.arm_indices]])
+                                  / np.asarray(a.cfg.effort_limits)[a.arm_indices])) for a in self.agents],
             separation=separation, spacing_error=spacing_error, formation_error=formation_error,
             box_position=self.data.xpos[self.box_body].tolist(),
             box_quaternion=self.data.qpos[self.box_q + 3:self.box_q + 7].tolist(),

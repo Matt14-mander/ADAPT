@@ -1,4 +1,4 @@
-"""Pre-attached OLI pair carrying a dynamic box with two independent ONNX policies."""
+"""Pre-attached OLI box carrying: a robot pair, or one robot using both arms."""
 
 import argparse
 from contextlib import nullcontext
@@ -13,6 +13,7 @@ import time
 def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path)
+    parser.add_argument("--mode", choices=("pair", "solo"), help="Two-robot carry or one OLI holding the box with both arms")
     parser.add_argument("--checkpoint", type=Path, help="OLI ONNX with a matching JSON; used independently by both robots")
     parser.add_argument("--checkpoint-b", type=Path, help="Optional second compatible OLI ONNX")
     parser.add_argument("--pd-check", action="store_true", help="Fixed-default-position diagnostic; does not validate locomotion")
@@ -21,7 +22,7 @@ def parse_args():
     parser.add_argument("--box-mass", type=float)
     parser.add_argument("--separation", type=float)
     parser.add_argument("--connection", choices=("weld", "connect", "none"))
-    parser.add_argument("--arm-hold", type=float, help="Blend carrying arm targets toward default pose, in [0,1]")
+    parser.add_argument("--arm-hold", type=float, help="Blend carrying arm targets toward default (pair) or IK pose (solo), in [0,1]")
     parser.add_argument("--no-formation", action="store_true")
     parser.add_argument("--encoder-noise", action="store_true")
     parser.add_argument("--seed", type=int)
@@ -47,6 +48,8 @@ def parse_args():
             parser.error(f"Missing matching policy JSON: {path.with_suffix('.json')}")
     if args.headless and args.pause_on_failure:
         parser.error("--pause-on-failure requires the viewer")
+    if args.mode == "solo" and args.checkpoint_b:
+        parser.error("--checkpoint-b is only available in pair mode")
     return parser, args
 
 
@@ -68,7 +71,7 @@ def update_viewer(viewer, simulation, record):
             mujoco.mjv_connector(geom, mujoco.mjtGeom.mjGEOM_ARROW, 0.008, start, end)
             scene.ngeom += 1
     viewer.set_texts((mujoco.mjtFontScale.mjFONTSCALE_100, mujoco.mjtGridPos.mjGRID_TOPLEFT,
-        "OLI pair\nTime\nPhase\nBox mass\nFormation error\nBox tilt\nGrasp error\nState",
+        f"OLI {simulation.cfg.mode}\nTime\nPhase\nBox mass\nFormation error\nBox tilt\nGrasp error\nState",
         f"Pre-attached carry\n{record['time']:.1f}s\n{record['phase']}\n{simulation.cfg.box_mass:.2f} kg\n"
         f"{record['formation_error']:.3f} m\n{record['box_tilt_deg']:.1f} deg\n"
         f"{max(record['grasp_position_error']):.3f} m\n{record['failure'] or 'running'}"))
@@ -87,6 +90,16 @@ def main():
     from deployment.policy_manager import ZeroPolicy, load_policy
 
     cfg = CarryConfig.load(args.config) if args.config else CarryConfig()
+    if args.mode is not None:
+        cfg.mode = args.mode
+    if cfg.mode == "solo":
+        if args.checkpoint_b:
+            parser.error("--checkpoint-b is only available in pair mode")
+        if args.arm_hold is None and (not args.config or args.mode == "solo"):
+            cfg.arm_hold = 1.0
+        if not args.config:
+            cfg.box_size = (0.28, 0.30, 0.20)
+            cfg.formation = False
     for name in ("seconds", "command", "box_mass", "separation", "connection", "arm_hold", "seed"):
         value = getattr(args, name)
         if value is not None:
@@ -99,15 +112,21 @@ def main():
         parser.error(f"Output directory already exists: {output}")
     if args.pd_check:
         from scripts.check_oli import make_config
-        policies = [ZeroPolicy(make_config(), name=f"pd_{i}") for i in range(2)]
+        policies = [ZeroPolicy(make_config(), name=f"pd_{i}") for i in range(1 if cfg.mode == "solo" else 2)]
         print("DIAGNOSTIC: fixed PD targets; this does not demonstrate trained locomotion.")
     else:
-        policies = [load_policy(args.checkpoint, name="robot_a"),
-                    load_policy(args.checkpoint_b or args.checkpoint, name="robot_b")]
+        policies = [load_policy(args.checkpoint, name="robot_a")]
+        if cfg.mode == "pair":
+            policies.append(load_policy(args.checkpoint_b or args.checkpoint, name="robot_b"))
     simulation = CarrySimulation(policies, cfg)
+    if cfg.mode == "solo":
+        print(f"SOLO: two pre-attached hands, IK arm hold={cfg.arm_hold:.2f}; walking with this pose requires policy validation.")
     metadata = dict(config=cfg.as_dict(), diagnostic=args.pd_check,
-        checkpoints=[str(args.checkpoint.resolve()), str((args.checkpoint_b or args.checkpoint).resolve())] if args.checkpoint else [],
+        checkpoints=([str(args.checkpoint.resolve())] +
+            ([str((args.checkpoint_b or args.checkpoint).resolve())] if cfg.mode == "pair" else [])) if args.checkpoint else [],
         policy_hashes=[p.cfg.model_sha256 for p in policies], mujoco_version=mujoco.__version__,
+        joint_names=[p.cfg.joint_names for p in policies],
+        arm_hold_targets=[a.hold_pose.tolist() for a in simulation.agents],
         robot="OLI HU_D04 gripper serial model", units="m, s, N, Nm; wrench in world frame about payload origin")
     telemetry = CarryTelemetry(output, metadata)
     renderer = writer = None

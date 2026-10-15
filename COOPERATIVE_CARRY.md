@@ -1,4 +1,65 @@
-# 双 OLI 预连接搬箱 demo
+# OLI 预连接搬箱 demo
+
+## 单 OLI 双手托箱
+
+单机模式复用已训练的 OLI HU_D04 gripper ONNX 和配套 JSON。初始化用带关节限位的
+双臂 IK 求出箱子下侧把手位置，腿、腰和头保持策略默认姿态。箱子有自由关节和真实重力，
+左右手各通过一个柔性约束连接箱子，不固定机器人根部，也不向箱子添加重力补偿。
+这是预连接托箱，不包含接近、闭合夹爪、抬箱或依靠接触摩擦的真实抓取。
+
+在服务器项目根目录，先确认已同步新增的 `solo_scene.py` 和 `oli_solo.json`，再运行：
+
+```bash
+uv run --frozen --extra train adapt-carry \
+  --config configs/cooperative_carry/oli_solo.json \
+  --checkpoint "${OLI_EXPORT_DIR:?请先设置策略导出目录}/oli.onnx" \
+  --command 0 0 0 --seconds 10 --pause-on-failure
+```
+
+先观察负载下站立，再运行慢速行走：
+
+```bash
+uv run --frozen --extra train adapt-carry \
+  --config configs/cooperative_carry/oli_solo.json \
+  --checkpoint "${OLI_EXPORT_DIR:?请先设置策略导出目录}/oli.onnx" \
+  --command 0.1 0 0 --seconds 60 --pause-on-failure
+```
+
+也可不加载配置，使用 `--mode solo`；默认箱子尺寸为 0.28 × 0.30 × 0.20 m、质量 0.5 kg，
+中心坐标为初始机器人前方 0.32 m、世界高度 1.12 m，左右手位于箱子下侧。
+单机默认关闭虚拟领队位置纠偏，直接给策略速度指令；若 0.1 m/s 不启动，可对照测试 0.2 m/s。
+
+单机默认 `--arm-hold 1`，把双臂完整交给 IK 姿态保持，策略继续控制腿、腰和头。
+单机 `--arm-hold 0.5` 是策略手臂目标与 **IK 托箱姿态** 各占一半；双机模式仍与原来的默认姿态混合。
+保持导出的策略默认姿态、归一化和 ONNX 不变；观测历史与 MoMo 使用实际执行的目标。
+但托箱姿态可能超出原策略训练分布，本地诊断成功不代表已学会负载行走；需用服务器的训练策略验证。
+
+`solo_box_center` 和 `box_size` 可在 JSON 中调整。IK 在机器人初始位置固定时求解，
+目标无法达到会报错，不通过移动根部或腿来凑姿态。朝向只是 IK 的软目标；约束姿态使用实际求解的手部朝向，
+避免初始连接错位。模型沿用原有的自碰撞关闭设置，初始碰撞检查不能代替完整的网格自碰撞验证。
+
+结果目录包含视频（添加 `--video`）、`run.json`、`telemetry.jsonl` 和 `summary.json`。
+`run.json` 保存实际 IK 关节目标，遥测增加 `arm_max_position_error`（rad）和
+`arm_max_effort_ratio`（相对于配置力矩上限），用于分析姿态跟踪和执行器饱和。
+单机没有机器人间距，`formation_error` 与 `spacing_error` 固定为 0，不代表速度跟踪误差。
+原成功条件仍要求至少 30 秒且机器人与箱子各移动至少 2 m；静止测试不会标记 `success: true`。
+
+无训练权重的结构诊断（不能当作行走验证）：
+
+```bash
+uv run --frozen --extra train adapt-carry \
+  --config configs/cooperative_carry/oli_solo.json --pd-check --headless --seconds 0.5
+```
+
+单机新增文件为 `deployment/cooperative/solo_scene.py`，复用原来的单机器人地址映射、策略代理、
+连接力监测、共享时钟和日志流程。回归检查：
+
+```bash
+uv run --frozen --extra train python -m unittest \
+  checks.test_solo_carry checks.test_cooperative checks.test_robot_migration
+```
+
+## 双 OLI 搬箱
 
 第一版使用两台同向并排的 OLI HU_D04 夹爪模型。左侧机器人使用左手，右侧机器人使用
 右手，分别连接中间箱子的两侧把手。两份独立的 ONNX 策略共享一个 MuJoCo 物理世界，

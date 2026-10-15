@@ -1,0 +1,11 @@
+{
+  "mode": "solo",
+  "seconds": 60.0,
+  "command": [0.1, 0.0, 0.0],
+  "box_mass": 0.5,
+  "box_size": [0.28, 0.30, 0.20],
+  "solo_box_center": [0.32, 0.0, 1.12],
+  "arm_hold": 1.0,
+  "connection": "weld",
+  "formation": false
+}

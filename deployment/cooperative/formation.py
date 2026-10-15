@@ -24,7 +24,7 @@ class FormationController:
     def reset(self):
         self.center = np.zeros(2)
         self.yaw = 0.0
-        self.last_commands = np.zeros((2, 3))
+        self.last_commands = np.zeros((1 if self.cfg.mode == "solo" else 2, 3))
 
     def phase(self, time):
         c = self.cfg
@@ -46,7 +46,8 @@ class FormationController:
         team_rotation = rotation2(self.yaw)
         velocity_world = team_rotation @ requested[:2]
         errors, commands = [], []
-        for i, (state, lateral) in enumerate(zip(states, (-self.cfg.separation / 2, self.cfg.separation / 2))):
+        offsets = (0.0,) if self.cfg.mode == "solo" else (-self.cfg.separation / 2, self.cfg.separation / 2)
+        for i, (state, lateral) in enumerate(zip(states, offsets)):
             offset = team_rotation @ [0, lateral]
             desired = self.center + offset
             error = desired - state.qpos[:2]

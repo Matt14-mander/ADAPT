@@ -1,4 +1,4 @@
-"""Build two named robot instances, a real dynamic box and pre-aligned grasps."""
+"""Build a robot pair or single-robot carry scene with pre-aligned grasps."""
 
 from dataclasses import dataclass
 
@@ -20,10 +20,15 @@ class CarryScene:
     prefixes: tuple
     box_position: np.ndarray
     robot_positions: list
+    joint_positions: object = None
+    grasp_sites: object = None
 
 
 def build_scene(policy_cfgs, cfg):
     cfg.validate()
+    if cfg.mode == "solo":
+        from .solo_scene import build_solo_scene
+        return build_solo_scene(policy_cfgs, cfg)
     if len(policy_cfgs) != 2:
         raise ValueError("Exactly two robot configurations are required")
     for pc in policy_cfgs:

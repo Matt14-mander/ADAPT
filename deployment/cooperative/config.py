@@ -9,6 +9,8 @@ import numpy as np
 
 @dataclass
 class CarryConfig:
+    mode: str = "pair"
+    solo_box_center: tuple[float, float, float] = (0.32, 0.0, 1.12)
     seconds: float = 60.0
     separation: float = 1.10
     command: tuple[float, float, float] = (0.10, 0.0, 0.0)
@@ -54,6 +56,8 @@ class CarryConfig:
         return asdict(self)
 
     def validate(self):
+        if self.mode not in ("pair", "solo"):
+            raise ValueError("mode must be pair or solo")
         for name, value in self.as_dict().items():
             if isinstance(value, (int, float, list, tuple)) and not np.isfinite(value).all():
                 raise ValueError(f"{name} must be finite")
@@ -67,7 +71,7 @@ class CarryConfig:
                      "yaw_gain", "max_velocity_correction", "failure_grace_seconds", "min_box_clearance"):
             if getattr(self, name) < 0:
                 raise ValueError(f"{name} must be non-negative")
-        for name in ("command", "box_size", "grasp_offset", "command_limits"):
+        for name in ("command", "box_size", "grasp_offset", "command_limits", "solo_box_center"):
             if np.asarray(getattr(self, name)).shape != (3,):
                 raise ValueError(f"{name} requires three values")
         if np.any(np.asarray(self.box_size) <= 0) or np.any(np.asarray(self.command_limits) <= 0):
